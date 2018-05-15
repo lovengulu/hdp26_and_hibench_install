@@ -5,7 +5,7 @@ $reserve_mem_gb=10;
 # Number of cpus to reserve (for OS and Hadoop Daemons etc.)
 $reserve_cpu=2;
 # As rule of thumb, 4 or 5 core per executors yields the best CPU utilization
-$number_of_cores_per_executor=2; 
+$number_of_cores_per_executor=5; 
 
 # Calculate the required properties based on the settings above and the current hardware in deployment
 $tot_mem_kb = `grep MemTotal: /proc/meminfo | awk '{print \$2}' ` ;
@@ -36,7 +36,7 @@ chomp $hdp_version;
 
 $config_content = <<"EOF";
 # HIBENCH_SCALE_PROFILE - Available value is tiny, small, large, huge, gigantic and bigdata
-HIBENCH_SCALE_PROFILE=small
+HIBENCH_SCALE_PROFILE=huge
 
 # executor number and cores when running on Yarn
 HIBENCH_YARN_EXECUTOR_NUM=$num_of_executors_in_all_nodes

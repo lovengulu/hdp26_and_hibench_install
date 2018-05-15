@@ -1,5 +1,18 @@
 #!/usr/bin/bash 
 
+#
+# hdp_2.6_installer:
+# Usage: 
+# 	./hdp_2.6_installer  [ list of slave nodes ] 
+# 
+# The scrip will install HDP 2.6 on the server from which this script is run. 
+# An addition, if a list of slave nodes is present in the command line, the scrip will install Ambari-Agent on the nodes, 
+# and install Hadoop services that are listed in the SLAVES_SERVICES array in the code below. 
+# All participating servers should have Centos-7 pre-installed
+# 
+# HDP2.4 may be installed by this by setting 'STACK_VERSION=2.4' below. This option tested only for installing single node. 
+#
+# 
 
 STACK="HDP"
 STACK_VERSION="2.6"
@@ -17,7 +30,6 @@ SLAVE_HOSTS=($@)
 # SLAVE_HOSTS=("host1.mydomain" "host2.mydomain")
 
 
-
 function MAIN {
 
 	setup_password_less_ssh 
@@ -28,13 +40,8 @@ function MAIN {
 	ambari_server_config_and_start 
 	ambari_agent_config_and_start
 	set_ambari_agent_on_slaves $SLAVE_HOSTS
-	#write_blueprint_json cluster-blueprint master-slave-test $FQDN_HOSTNAME
 	write_blueprint_json
-	#write_single_custer_blueprint_json 
-	# TODO - replaced for testings. 
 	blueprint_install
-	#blueprint_install cluster-blueprint master-slave-test $FQDN_HOSTNAME
-
 
 	echo "Install process can be monitored at: http://${FQDN_HOSTNAME}:8080/ "
 	echo "User/Password:   admin/admin"
@@ -477,12 +484,10 @@ dest_hostname=${3:-$FQDN_HOSTNAME}
 # TODO: Once tuned for performance, can you set_hadoop_config() to set those parameters at install time.   
 
 #set_hadoop_config
-#TODO: Removed write_single_custer_blueprint_json to test CLUSTER.
-#write_single_custer_blueprint_json $blueprint_name $cluster_name $dest_hostname 
 
 #write_repo_json should register the specific stack version to install. The Ambari version used here seems not to interpret it correctly. 
+#Most liekely later Ambari releases fixed it. Not tested again. 
 #write_repo_json()
-
 
 curl -H "X-Requested-By: ambari" -X POST -u admin:admin http://${dest_hostname}:8080/api/v1/blueprints/${blueprint_name} -d @cluster_configuration.json
 curl -H "X-Requested-By: ambari" -X POST -u admin:admin http://${dest_hostname}:8080/api/v1/clusters/${cluster_name} -d @hostmapping.json
@@ -493,19 +498,3 @@ curl -H "X-Requested-By: ambari" -X POST -u admin:admin http://${dest_hostname}:
 
 MAIN $@
 
-exit
-blueprint_name=hdp-setup-bluprint
-cluster_name=host_group_1
-# test: 
-# curl -v -H "X-Requested-By: ambari" -X GET -u admin:admin http://localhost:8080/api/v1/clusters/test?format=blueprint -o BluePrint-cluster-test-node.json
-curl -v -H "X-Requested-By: ambari" -X GET -u admin:admin http://localhost:8080/api/v1/clusters/${cluster_name}?format=blueprint
-
-#curl -H "X-Requested-By: ambari" -X DELETE -u admin:admin http://localhost:8080/api/v1/clusters/${cluster_name}
-#curl -H "X-Requested-By: ambari" -X DELETE -u admin:admin http://localhost:8080/api/v1/blueprints/${blueprint_name}
-
-curl -v -H "X-Requested-By: ambari" -X GET -u admin:admin http://localhost:8080/api/v1/hosts
-
-
-cd /tmp
-wget http://public-repo-1.hortonworks.com/HDP/tools/2.6.0.3/hdp_manual_install_rpm_helper_files-2.6.0.3.8.tar.gz
-tar zxvf hdp_manual_install_rpm_helper_files-2.6.0.3.8.tar.gz
