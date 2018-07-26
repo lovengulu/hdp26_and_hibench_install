@@ -1,4 +1,4 @@
-#!/usr/bin/bash 
+#!/usr/bin/bash
 
 #
 # hdp_2.6_installer:
@@ -374,7 +374,7 @@ function write_blueprint_json {
 
     stack_version_int=$(echo $STACK_VERSION | tr -d ".")
     # Can add below  more definitions for HDP_xxx_STACK. The stack to install is determined by "$STACK_VERSION" by taking the digits 
-    # and ommiting the dot (.)  
+    # and omitting the dot (.)
 
 
     # the SPARK clients are not installed on the master for cluster install. 
@@ -383,16 +383,17 @@ function write_blueprint_json {
     if [ ${#SLAVE_HOSTS[@]} -eq 0 ]; 
     then 
         # Single node 
-         read -r -d '' spark_client_placeholder <<EOF
+         read -r -d '' services_not_to_install_on_master <<EOF
         { "name" : "SPARK2_CLIENT" },
-        { "name" : "SPARK_CLIENT" },        
+        { "name" : "SPARK_CLIENT" },
+        { "name" : "NODEMANAGER" },
+        { "name" : "DATANODE" },
 EOF
     fi
 
     read -r -d '' HDP_26_STACK <<EOF
-        { "name" : "NODEMANAGER" },
         { "name" : "HIVE_SERVER" },
-        ${spark_client_placeholder}
+        ${services_not_to_install_on_master}
         { "name" : "METRICS_MONITOR" },
         { "name" : "HIVE_METASTORE" },
         { "name" : "TEZ_CLIENT" },
@@ -418,7 +419,6 @@ EOF
         { "name" : "ACTIVITY_EXPLORER" },
         { "name" : "MAPREDUCE2_CLIENT" },
         { "name" : "AMBARI_SERVER" },
-        { "name" : "DATANODE" },
         { "name" : "APP_TIMELINE_SERVER" },
         { "name" : "HIVE_CLIENT" },
         { "name" : "RESOURCEMANAGER"  }
@@ -566,6 +566,7 @@ curl -H "X-Requested-By: ambari" -X POST -u admin:admin http://${dest_hostname}:
 
 }
 
-#####################  EXCECUTE  Predefined Functions #########
+#####################  EXECUTE  Predefined Functions #########
 
 MAIN $@
+
