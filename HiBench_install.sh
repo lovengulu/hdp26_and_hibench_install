@@ -28,6 +28,8 @@ SPARK_VER=$(echo $HIBENCH_SPARK_HOME | sed  's/.*\///')
 TMP_DIR=/tmp
 FQDN=$(hostname -f)
 
+JDK_DOWNLOAD_PATH="http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64.tar.gz"
+
 #################################
 
 function MAIN {
@@ -40,20 +42,22 @@ function MAIN {
 function install_prerequsuits {
     yum install git wget -y
 
-    # Install JAVA jdk1.8.0_171
+    # Install JAVA 
     cd $TMP_DIR
-    wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u171-b11/512cd62ec5174c3487ac17c61aaa89e8/jdk-8u171-linux-x64.tar.gz
+    jdk_file=$(basename $JDK_DOWNLOAD_PATH)
+    wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" $JDK_DOWNLOAD_PATH
     cd /usr/jdk64/
-    tar xvf /tmp/jdk-8u171-linux-x64.tar.gz
+    tar xvf $TMP_DIR/$jdk_file
+    jdk_dir=$(ls -1td jdk* | grep -v tar  | sort | tail -1)
 
     # Set JAVA_HOME for the rest of this session and later for running HiBench tests. 
-    export JAVA_HOME=/usr/jdk64/jdk1.8.0_171
-    echo "export JAVA_HOME=/usr/jdk64/jdk1.8.0_171" >> ~hdfs/.bash_profile
+    export JAVA_HOME=/usr/jdk64/$jdk_dir
+    echo "export JAVA_HOME=$JAVA_HOME" >> ~hdfs/.bash_profile
 
 
     # Install MVN
 	latest_maven_release="3.5.3"
-    cd /tmp
+    cd $TMP_DIR
 	# Use archive so the script doesn't break upon new release of maven
     #wget http://apache.spd.co.il/maven/maven-3/${latest_maven_release}/binaries/apache-maven-${latest_maven_release}-bin.tar.gz
 	wget https://archive.apache.org/dist/maven/maven-3/${latest_maven_release}/binaries/apache-maven-${latest_maven_release}-bin.tar.gz 
