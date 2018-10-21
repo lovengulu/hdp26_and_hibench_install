@@ -1,0 +1,30 @@
+##   In some of the installs, I recieved the following error in the ambari-agent log. 
+##   by monitoring:  tail -F /var/log/ambari-agent/ambari-agent.log
+##   
+##   NetUtil.py:97 - SSLError: Failed to connect. Please check openssl library versions.
+##   
+##   
+##   the sulutions that worked best for me were changes to:
+##   1. /etc/ambari-agent/conf/ambari-agent.ini
+##   2. /etc/python/cert-verification.cfg 
+##   
+sed -i "s/ssl_verify_cert=0/ssl_verify_cert=0\nforce_https_protocol=PROTOCOL_TLSv1_2/" /etc/ambari-agent/conf/ambari-agent.ini
+sed -i.ORIG 's/verify=platform_default/verify=disable/' /etc/python/cert-verification.cfg
+##   
+##   now restart the server & agent:
+ambari-server restart
+ambari-agent restart
+##   
+##   If need to restart the installation - this may help - but not tested explicitly:
+blueprint_name=${1:-hdp-setup-bluprint}
+cluster_name=${2:-host_group_1}
+dest_hostname=$(hostname -f)
+#   
+curl -H "X-Requested-By: ambari" -X POST -u admin:admin http://${dest_hostname}:8080/api/v1/blueprints/${blueprint_name} -d @cluster_configuration.json
+curl -H "X-Requested-By: ambari" -X POST -u admin:admin http://${dest_hostname}:8080/api/v1/clusters/${cluster_name} -d @hostmapping.json
+# but may need first to delete the blueprints.
+curl -H "X-Requested-By: ambari" -X DELETE -u admin:admin http://${dest_hostname}:8080/api/v1/blueprints/${blueprint_name} 
+curl -H "X-Requested-By: ambari" -X DELETE -u admin:admin http://${dest_hostname}:8080/api/v1/clusters/${cluster_name} 
+##   
+##   
+
