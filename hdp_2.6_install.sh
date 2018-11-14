@@ -258,6 +258,8 @@ function ambari_agent_config_and_start {
     yum install ambari-agent -y 
     # in a single-node cluster, setting the hostname is not mandatory
     sed /etc/ambari-agent/conf/ambari-agent.ini -i.ORIG -e "s/hostname=localhost/hostname=${FQDN_HOSTNAME}/"
+    # Fix SSL issue found in many installs
+    sed -i "s/ssl_verify_cert=0/ssl_verify_cert=0\nforce_https_protocol=PROTOCOL_TLSv1_2/" /etc/ambari-agent/conf/ambari-agent.ini
     ambari-agent start   
 }
 
